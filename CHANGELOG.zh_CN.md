@@ -4,6 +4,22 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/) 格式。
 
+## [2.2.0] - 2026-05-08
+
+### 修复
+
+- **`ctx.channelRuntime` 在 external plugin 中不可用：** `ChannelGatewayContext.channelRuntime` 在 external plugin 的 `startAccount` 回调中不存在，导致入站消息无法路由和回复。已将 `process-message.js` 中所有 `channelRuntime.*` 方法调用替换为 plugin-sdk 独立函数（`resolveAgentRoute`、`recordInboundSession`、`createReplyDispatcherWithTyping`、`dispatchReplyFromConfigWithSettledDispatcher`、`finalizeInboundContext`、`resolveStorePath`、`resolveHumanDelayConfig`、`createTypingCallbacks`）。
+
+### 变更
+
+- **External plugin 架构：** `process-message.js` 不再依赖 `channelRuntime` 对象，而是通过 `deps` 接收独立 SDK 函数（`commands`、`saveMedia`）。当 `channelRuntime.media.saveMediaBuffer` 不可用时，monitor 提供文件系统兜底方案。
+- **Runtime 兼容桩：** `runtime.ts` 现导出空函数桩（`setWeixinRuntime`、`getWeixinRuntime` 等），避免插件注册时导入报错。这些是遗留死代码，将在后续版本移除。
+- **Monitor 启动：** 移除 `resolveWeixinChannelRuntime` 轮询兜底；monitor 不再等待全局 runtime。
+
+### 新增
+
+- **命令授权兜底：** 当 `deps.commands` 不可用时（external plugin 无完整 runtime），使用空 runtime 优雅跳过命令级授权。配对模式下的 DM 访问仍通过发送者白名单强制执行。
+
 ## [2.1.9] - 2026-04-20
 
 ### 新增

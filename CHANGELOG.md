@@ -4,6 +4,22 @@
 
 This project follows the [Keep a Changelog](https://keepachangelog.com/) format.
 
+## [2.2.0] - 2026-05-08
+
+### Fixed
+
+- **`ctx.channelRuntime` unavailable in external plugin:** `ChannelGatewayContext.channelRuntime` is not available in the `startAccount` callback for external plugins, causing inbound messages to fail routing and reply. All `channelRuntime.*` method calls in `process-message.js` have been replaced with plugin-sdk standalone functions (`resolveAgentRoute`, `recordInboundSession`, `createReplyDispatcherWithTyping`, `dispatchReplyFromConfigWithSettledDispatcher`, `finalizeInboundContext`, `resolveStorePath`, `resolveHumanDelayConfig`, `createTypingCallbacks`).
+
+### Changed
+
+- **External plugin architecture:** `process-message.js` no longer depends on a `channelRuntime` object. Instead it accepts individual SDK functions via `deps` (`commands`, `saveMedia`). The monitor provides a file-system fallback when `channelRuntime.media.saveMediaBuffer` is unavailable.
+- **Runtime compat stubs:** `runtime.ts` now exports no-op stubs (`setWeixinRuntime`, `getWeixinRuntime`, etc.) to prevent import errors during plugin registration. These are dead code and will be removed in a future release.
+- **Monitor startup:** Removed the `resolveWeixinChannelRuntime` polling fallback; monitor starts without waiting for a global runtime.
+
+### Added
+
+- **Command authorization fallback:** When `deps.commands` is not available (external plugin without full runtime), a no-op runtime is used so the plugin gracefully skips command-level authorization. Pairing-based DM access is still enforced via the sender allowlist.
+
 ## [2.1.9] - 2026-04-20
 
 ### Added
